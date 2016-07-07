@@ -1,0 +1,4 @@
+# Directed graph (each unordered pair of nodes is saved once): Email-Enron.txt 
+# Enron email network (edge indicated that email was exchanged, undirected edges)
+# Nodes: 36692 Edges: 367662
+# FromNodeId	ToNodeId

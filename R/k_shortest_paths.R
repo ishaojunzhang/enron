@@ -1,0 +1,64 @@
+# find k shortest paths
+k.shortest.paths <- function(graph, from, to, k){
+  # first shortest path
+  k0 <- get.shortest.paths(graph,from,to, output='both')
+  
+  # number of currently found shortest paths
+  kk <- 1
+  
+  # list of alternatives
+  variants <- list()
+  
+  # shortest variants
+  shortest.variants <- list(list(g=graph, path=k0$epath, vert=k0$vpath, dist=shortest.paths(graph,from,to)))
+  
+  # until k shortest paths are found
+  while(kk<k){
+    # take last found shortest path
+    last.variant <- shortest.variants[[length(shortest.variants)]]              
+    
+    # calculate all alternatives
+    variants <- calculate.variants(variants, last.variant, from, to)
+    
+    # find shortest alternative
+    sp <- select.shortest.path(variants)
+    
+    # add to list, increase kk, remove shortest path from list of alternatives
+    shortest.variants[[length(shortest.variants)+1]] <- list(g=variants[[sp]]$g, path=variants[[sp]]$variants$path, vert=variants[[sp]]$variants$vert, dist=variants[[sp]]$variants$dist)
+    kk <- kk+1
+    variants <- variants[-sp]
+  }
+  
+  return(shortest.variants)
+}
+
+# found all alternative routes
+calculate.variants <- function(variants, variant, from, to){
+  # take graph from current path
+  g <- variant$g
+  
+  # iterate through edges, removing one each iterations
+  for (j in unlist(variant$path)){
+    newgraph <- delete.edges(g, j) # remove adge
+    sp <- get.shortest.paths(newgraph,from,to, output='both') # calculate shortest path
+    spd <- shortest.paths(newgraph,from,to) # calculate length
+    if (spd != Inf){ # the the path is found
+      if (!contains.path(variants, sp$vpath)) # add to list, unless it already contains the same path
+      {
+        variants[[length(variants)+1]] <- list(g=newgraph, variants=list(path=sp$epath, vert=sp$vpath, dist=spd))
+      }
+    }
+  }
+  
+  return(variants)
+}
+
+# does a list contain this path?
+contains.path <- function(variants, variant){
+  return( any( unlist( lapply( variants, function(x){ identical(x$variant$vert,variant) } ) ) ) )
+}
+
+# which path from the list is the shortest?
+select.shortest.path <- function(variants){
+  return( which.min( unlist( lapply( variants, function(x){x$variants$dist} ) ) ) )
+}
